@@ -104,7 +104,7 @@
                           //    console.log(part.byteLength);
                           trans += data.byteLength;
                           var tmp = new Uint8Array(part.byteLength + data.byteLength);
-                          console.log(tmp);
+                          //console.log(tmp);
                           tmp.set(new Uint8Array(part), 0);
                           tmp.set(new Uint8Array(data), part.byteLength);
                           part = tmp.buffer;
@@ -637,13 +637,17 @@
               if (doc[0] + doc[1] == 84) { //Todos los Archivos DCD Empiezan con un 84 seguido de la palabra CORD
                   console.log("64 bits Recscale ");
                   rec_scale64 = true; //Se Activa La Bandera de que son Numeros de 64bits(8 Bytes)
+                  throw new error("64 bits Format Is not Supported");
               } else if (doc[0] == 84 && doc[1] == 1146244931) { //Valor de la palabra CORD en Numero
                   console.log("32 bit Recscale" );
                   rec_scale64 = false; //Se desactiva la bandera son enteros comunes 32bits(4 bytes)
               } else if(swap32(doc[0],true)==84 && swap32(doc[1],true)==1146244931){
                   endianess=true;
                   console.log("Need To Change Endianess");
-              }else {
+              }else if(doc[0]==null){
+                throw new Error("Connection Delay, Still Loading.....");
+              }
+              else{
                   throw new Error("DCD: CORD or Initial 84 Not Found");
               }
               if (!rec_scale64) { //Proceso si el archivo maneja enteros de 32bits
@@ -697,27 +701,11 @@
                   n_floats=n_atoms+2;
                         for(var i=0;i<n_csets;i++)
                         {
-                          /*var j=0;
-                          do {
-                              arregl[j] = buff[pos+(n_atoms+2)*2];
-                              //pos+=4;
-                              arregl1[j] = buff[pos+(n_atoms+2)];
-                              //pos+=4;
-                              arregl2[j] =  buff[pos];
-                              pos++;
-                              j++;
-                          }while(j<n_atoms)*/
                           var arr = new Float32Array(buff.subarray(pos, pos+n_floats));
                           pos+=n_floats;
                           var arr1 = new Float32Array(buff.subarray(pos, pos+n_floats));
                           pos+=n_floats;
                           var arr2 = new Float32Array(buff.subarray(pos, pos+n_floats));
-                          /*for(var j=0;j<arr.length;j++)
-                          {
-                            arr[i]*=ANGS_PER_NM;
-                            arr1[i]*=ANGS_PER_NM;
-                            arr2[i]*=ANGS_PER_NM;
-                          }*/
                           self.postMessage({
                               cmd: "enviar",
                               dato: swaparray(arr.subarray(1,-1),endianess),
